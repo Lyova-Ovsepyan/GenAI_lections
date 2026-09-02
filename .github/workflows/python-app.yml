@@ -39,4 +39,4 @@ jobs:
       env:
         PYTHONPATH: .
       run: |
-        python -m pytest 3_1_LLM_agent --import-mode=importlib -v
+        python -m pytest -v
