@@ -1,0 +1,5 @@
+# 3_1_LLM_agent/requirements.txt
+requests
+python-decouple
+duckduckgo-search
+pytest
