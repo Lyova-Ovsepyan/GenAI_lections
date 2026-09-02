@@ -73,6 +73,4 @@ jobs:
       run: |
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m pytest -v
-
-      run: |
         python main.py
