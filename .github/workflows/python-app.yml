@@ -54,6 +54,9 @@ jobs:
 
     - name: Start Ollama Service and Pull Model
       run: |
+        export OLLAMA_NUM_PARALLEL=1
+        export OLLAMA_MAX_LOADED_MODELS=1
+        
         # Запускаем Ollama в фоновом режиме и перенаправляем логи
         ollama serve > ollama.log 2>&1 &
     
@@ -70,3 +73,6 @@ jobs:
       run: |
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m pytest -v
+
+      run: |
+        python main.py
