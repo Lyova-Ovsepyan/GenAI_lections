@@ -1,5 +1,4 @@
-# 3_1_LLM_agent/requirements.txt
-requests
-python-decouple
-duckduckgo-search
-pytest
+requests>=2.28.0
+python-decouple>=3.8
+pytest>=7.0.0
+pytest-cov>=4.0.0
