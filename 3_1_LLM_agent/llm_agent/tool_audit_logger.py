@@ -10,13 +10,6 @@ class AuditLogger:
     """
     
     def __init__(self, log_file: str = "audit_logs.json", session_id: Optional[str] = None):
-        """
-        Инициализация AuditLogger.
-        
-        Args:
-            log_file (str): Путь к файлу для сохранения логов
-            session_id (str, optional): ID сессии. Если None, генерируется автоматически
-        """
         self.log_file = log_file
         self.logs: List[Dict[str, Any]] = []
         self.session_id = session_id or datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -33,16 +26,6 @@ class AuditLogger:
                 self.logs = []
     
     def log_request(self, user_query: str, metadata: Optional[Dict] = None) -> Dict:
-        """
-        Логирует запрос пользователя.
-        
-        Args:
-            user_query (str): Текст запроса
-            metadata (Dict, optional): Дополнительные метаданные
-            
-        Returns:
-            Dict: Созданная запись лога
-        """
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "session_id": self.session_id,
@@ -57,16 +40,6 @@ class AuditLogger:
         return log_entry
     
     def log_plan(self, plan: List[Dict], metadata: Optional[Dict] = None) -> Dict:
-        """
-        Логирует план действий агента.
-        
-        Args:
-            plan (List[Dict]): Список действий
-            metadata (Dict, optional): Дополнительные метаданные
-            
-        Returns:
-            Dict: Созданная запись лога
-        """
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "session_id": self.session_id,
@@ -83,18 +56,6 @@ class AuditLogger:
     
     def log_tool_execution(self, tool_name: str, tool_input: str, 
                           result: Any, metadata: Optional[Dict] = None) -> Dict:
-        """
-        Логирует выполнение инструмента.
-        
-        Args:
-            tool_name (str): Название инструмента
-            tool_input (str): Входные данные инструмента
-            result (Any): Результат выполнения
-            metadata (Dict, optional): Дополнительные метаданные
-            
-        Returns:
-            Dict: Созданная запись лога
-        """
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "session_id": self.session_id,
@@ -111,16 +72,6 @@ class AuditLogger:
         return log_entry
     
     def log_final_response(self, response: str, metadata: Optional[Dict] = None) -> Dict:
-        """
-        Логирует финальный ответ агента.
-        
-        Args:
-            response (str): Текст ответа
-            metadata (Dict, optional): Дополнительные метаданные
-            
-        Returns:
-            Dict: Созданная запись лога
-        """
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "session_id": self.session_id,
@@ -137,17 +88,6 @@ class AuditLogger:
     
     def log_error(self, error_message: str, error_type: str = "GENERAL", 
                   metadata: Optional[Dict] = None) -> Dict:
-        """
-        Логирует ошибку.
-        
-        Args:
-            error_message (str): Сообщение об ошибке
-            error_type (str): Тип ошибки
-            metadata (Dict, optional): Дополнительные метаданные
-            
-        Returns:
-            Dict: Созданная запись лога
-        """
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "session_id": self.session_id,
@@ -164,6 +104,7 @@ class AuditLogger:
     
     def _save_logs(self) -> None:
         """Сохраняет логи в файл."""
+        print(f" _save_logs вызван! Записей: {len(self.logs)}, файл: {self.log_file}")
         try:
             with open(self.log_file, 'w', encoding='utf-8') as f:
                 json.dump({
@@ -171,31 +112,28 @@ class AuditLogger:
                     "total_logs": len(self.logs),
                     "logs": self.logs
                 }, f, ensure_ascii=False, indent=2)
+            print(f" Успешно сохранено {len(self.logs)} записей в {self.log_file}")
         except IOError as e:
-            print(f"Error saving logs: {e}")
+            print(f"❌ Ошибка сохранения логов: {e}")
+        except Exception as e:
+            print(f"❌ Неожиданная ошибка: {e}")
     
     def get_logs(self) -> List[Dict]:
-        """Получает все логи."""
         return self.logs
     
     def get_logs_by_event_type(self, event_type: str) -> List[Dict]:
-        """Получает логи по типу события."""
         return [log for log in self.logs if log.get('event_type') == event_type]
     
     def clear_logs(self) -> None:
-        """Очищает все логи."""
         self.logs = []
         self._save_logs()
     
     def get_statistics(self) -> Dict:
-        """Получает статистику по логам."""
         stats = {
             "total_logs": len(self.logs),
             "event_types": {}
         }
-        
         for log in self.logs:
             event_type = log.get('event_type', 'UNKNOWN')
             stats["event_types"][event_type] = stats["event_types"].get(event_type, 0) + 1
-        
         return stats
