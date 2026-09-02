@@ -15,14 +15,6 @@ class LLMAgent:
     """
     def __init__(self, model: str = "tngtech/deepseek-r1t2-chimera", local: bool = False, 
                   ollama_base_url: str = "http://localhost:11434", ollama_model: str = "qwen3.5:0.8b"):
-        """
-        Инициализирует агента.
-        Args:
-            model (str): Название модели для OpenRouter.
-            local (bool): Если True, использует локальный Ollama вместо OpenRouter.
-            ollama_base_url (str): Базовый URL для Ollama API.
-            ollama_model (str): Название модели в Ollama.
-        """
         self.local = local
         self.ollama_base_url = ollama_base_url
         self.ollama_model = ollama_model
@@ -34,20 +26,14 @@ class LLMAgent:
             self.api_key = None
             self.url = f"{self.ollama_base_url}/v1/chat/completions"
             self.model = ollama_model
-        # Создаем экземпляры инструментов
         self.tools = {
             "calculator": CalculatorTool(),
             "web_search": WebSearchTool(),
         }
-        # Инициализация AuditLogger (твой вариант 13)
         self.audit_logger = AuditLogger()
         self.conversation_history = []
 
     def _make_api_request(self, payload: Dict, headers: Optional[Dict] = None) -> Dict:
-        """
-        Универсальный метод для отправки запросов к API.
-        Поддерживает как OpenRouter, так и Ollama.
-        """
         if headers is None:
             headers = {}
         if not self.local:
@@ -65,10 +51,6 @@ class LLMAgent:
             raise Exception(f"Ошибка при запросе к API: {e}")
 
     def _ask_llm_for_plan(self, query: str) -> List[Dict]:
-        """
-        Создает план действий, используя LLM.
-        Работает как с OpenRouter, так и с Ollama.
-        """
         system_prompt = f"""
         You are a helpful AI planning assistant. Analyze the user's request and decide if you need to use any tools.
         Available tools:
@@ -117,9 +99,6 @@ class LLMAgent:
             return []
 
     def _generate_final_response(self, user_query: str) -> str:
-        """
-        Генерирует финальный ответ на основе истории выполнения.
-        """
         prompt = f"""
         Based on the following conversation log, provide a direct and helpful answer to the user's original question.
         Be concise and use the information from the tool results to support your answer.
@@ -141,20 +120,10 @@ class LLMAgent:
             return f"Ошибка при генерации финального ответа. Детали: {e}"
 
     def process_query(self, query: str) -> str:
-        """
-        Основной метод для обработки запроса пользователя.
-        """
-        # Логируем запрос пользователя (твой вариант 13)
         self.audit_logger.log_request(query)
-        
         print(f"Агент анализирует ваш запрос... (Режим: {'локальный Ollama' if self.local else 'OpenRouter'})")
-        
-        # --- Шаг 1: Планирование ---
         plan = self._ask_llm_for_plan(query)
-        
-        # Логируем план
         self.audit_logger.log_plan(plan)
-        
         if not plan:
             print("Инструменты не требуются. Генерирую ответ напрямую.")
             direct_prompt = f"Ответьте на следующий вопрос кратко и информативно: {query}"
@@ -167,17 +136,12 @@ class LLMAgent:
             try:
                 response_data = self._make_api_request(payload)
                 final_response = response_data["choices"][0]["message"]["content"]
-                
-                # Логируем финальный ответ
                 self.audit_logger.log_final_response(final_response)
-                
                 return final_response
             except Exception as e:
                 error_msg = f"Извините, не удалось сгенерировать ответ: {e}"
                 self.audit_logger.log_error(error_msg, "API_ERROR")
                 return error_msg
-        
-        # --- Шаг 2: Исполнение плана ---
         print(f"План действий: {plan}")
         for step in plan:
             tool_name = step.get('action')
@@ -186,10 +150,7 @@ class LLMAgent:
                 print(f"Выполняется инструмент: '{tool_name}'")
                 result = self.tools[tool_name].use(tool_input)
                 print(f"Результат: {result}...")
-                
-                # Логируем выполнение инструмента
                 self.audit_logger.log_tool_execution(tool_name, tool_input, result)
-                
                 self.conversation_history.append({
                     'role': 'system',
                     'content': f"Tool {tool_name} result: {result}"
@@ -199,20 +160,12 @@ class LLMAgent:
                 print(error_msg)
                 self.audit_logger.log_error(error_msg, "TOOL_NOT_FOUND")
                 self.conversation_history.append({'role': 'system', 'content': error_msg})
-        
-        # --- Шаг 3: Генерация финального ответа ---
         print("Составляю финальный ответ...")
         final_response = self._generate_final_response(query)
-        
-        # Логируем финальный ответ
         self.audit_logger.log_final_response(final_response)
-        
         return final_response
 
     def test_ollama_connection(self) -> bool:
-        """
-        Тестирует соединение с локальным Ollama сервером.
-        """
         if not self.local:
             return False
         try:
