@@ -4,3 +4,4 @@ python-decouple
 ddgs
 pytest
 pypdf
+pdfplumber
