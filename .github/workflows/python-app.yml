@@ -55,13 +55,13 @@ jobs:
     - name: Start Ollama Service and Pull Model
       run: |
         # Запускаем Ollama в фоновом режиме и перенаправляем логи
-        ./.ollama-install/ollama serve > ollama.log 2>&1 &
+        ollama serve > ollama.log 2>&1 &
     
         # Ждем пару секунд, пока сервер инициализируется
         sleep 5
     
         # Скачиваем модель, указанную в коде теста
-        ./.ollama-install/ollama pull qwen3.5:0.8b
+        ollama pull qwen3.5:0.8b
         
     - name: Test with pytest
       working-directory: ./3_1_LLM_agent
