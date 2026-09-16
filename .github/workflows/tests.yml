@@ -18,16 +18,33 @@ jobs:
       with:
         python-version: '3.10'
     
+    # --- НОВЫЕ ШАГИ ДЛЯ OLLAMA ---
+    - name: Install Ollama
+      run: |
+        curl -fsSL https://ollama.com/install.sh | sh
+        
+    - name: Start Ollama service in background
+      run: |
+        ollama serve &
+        sleep 5 # Даем 5 секунд на запуск сервиса
+        
+    - name: Pull tiny model for CI testing
+      run: |
+        # Скачиваем минимальную модель для быстрой проверки в CI
+        ollama pull qwen2.5:0.5b
+    # -----------------------------
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov
+        pip install pytest pytest-cov requests
         if [ -f 3_1_LLM_agent/requirements.txt ]; then pip install -r 3_1_LLM_agent/requirements.txt; fi
     
     - name: Run tests with coverage
       run: |
         cd 3_1_LLM_agent
-        python -m pytest tests/test_audit_logger.py -v --cov=llm_agent --cov-report=xml --cov-report=term-missing
+        # Запускаем ВСЕ тесты в папке tests (включая новый тест ollama)
+        python -m pytest tests/ -v --cov=llm_agent --cov-report=xml --cov-report=term-missing
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
